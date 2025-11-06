@@ -13,7 +13,7 @@ pub struct PrivateUser {
     ///
     /// Note: this field is only available if the user is authorised with the
     /// `user-read-private` scope.
-    pub country: String,
+    pub country: Option<String>,
     /// The name that is displayed on the user's profile.
     pub display_name: Option<String>,
     /// The user's email address.
@@ -21,7 +21,7 @@ pub struct PrivateUser {
     /// Note: this email address is *unverified*, meaning that there is no proof
     /// that it actually belongs to the user; this field is only available if the
     /// user is authorised with the `user-read-email` scope.
-    pub email: String,
+    pub email: Option<String>,
     /// The user's explicit content settings.
     ///
     /// Note: This field is only available if the user is authorised with the
