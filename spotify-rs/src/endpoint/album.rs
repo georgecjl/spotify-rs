@@ -1,15 +1,16 @@
 use serde::Serialize;
 
 use crate::{
+    Nil,
     auth::{AuthFlow, Authorised},
     body_list,
     error::Result,
     model::{
+        Page,
         album::{Album, Albums, PagedAlbums, SavedAlbum, SimplifiedAlbum},
         track::SimplifiedTrack,
-        Page,
     },
-    query_list, Nil,
+    query_list,
 };
 
 use super::{Client, Endpoint};
