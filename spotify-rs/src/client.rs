@@ -196,9 +196,12 @@ impl<F: AuthFlow> Client<Token, F> {
     pub(crate) async fn request<P: Serialize + Debug, T: DeserializeOwned>(
         &self,
         method: Method,
-        endpoint: String,
+        // (Usually) the endpoint URL that gets appended onto the base `API_URL`
+        url: String,
         query: Option<P>,
         body: Option<Body<P>>,
+        // Whether or not to use the `url` parameter as the raw URL, instead of just the endpoint URL
+        raw_url: bool,
     ) -> Result<T> {
         let (token_expired, secret) = {
             let lock = self
@@ -230,11 +233,13 @@ impl<F: AuthFlow> Client<Token, F> {
             }
         }
 
-        let mut req = {
-            self.http
-                .request(method, format!("{API_URL}{endpoint}"))
-                .bearer_auth(secret)
+        let request_url = if raw_url {
+            url
+        } else {
+            format!("{API_URL}{url}")
         };
+
+        let mut req = { self.http.request(method, request_url).bearer_auth(secret) };
 
         if let Some(q) = query {
             req = req.query(&q);
@@ -299,7 +304,7 @@ impl<F: AuthFlow> Client<Token, F> {
         endpoint: String,
         query: impl Into<Option<P>>,
     ) -> Result<T> {
-        self.request(Method::GET, endpoint, query.into(), None)
+        self.request(Method::GET, endpoint, query.into(), None, false)
             .await
     }
 
@@ -308,7 +313,7 @@ impl<F: AuthFlow> Client<Token, F> {
         endpoint: String,
         body: impl Into<Option<Body<P>>>,
     ) -> Result<T> {
-        self.request(Method::POST, endpoint, None, body.into())
+        self.request(Method::POST, endpoint, None, body.into(), false)
             .await
     }
 
@@ -317,7 +322,8 @@ impl<F: AuthFlow> Client<Token, F> {
         endpoint: String,
         body: impl Into<Option<Body<P>>>,
     ) -> Result<T> {
-        self.request(Method::PUT, endpoint, None, body.into()).await
+        self.request(Method::PUT, endpoint, None, body.into(), false)
+            .await
     }
 
     pub(crate) async fn delete<P: Serialize + Debug, T: DeserializeOwned>(
@@ -325,7 +331,7 @@ impl<F: AuthFlow> Client<Token, F> {
         endpoint: String,
         body: impl Into<Option<Body<P>>>,
     ) -> Result<T> {
-        self.request(Method::DELETE, endpoint, None, body.into())
+        self.request(Method::DELETE, endpoint, None, body.into(), false)
             .await
     }
 }

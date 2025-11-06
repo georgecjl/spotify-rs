@@ -2,17 +2,17 @@ use std::{fmt::Debug, marker::PhantomData};
 
 use reqwest::Method;
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::{
+    Nil,
     auth::{AuthFlow, Authorised},
     client::Body,
     error::Result,
     model::{
-        player::{CurrentlyPlayingItem, Device, Devices, PlayHistory, PlaybackState, Queue},
         CursorPage,
+        player::{CurrentlyPlayingItem, Device, Devices, PlayHistory, PlaybackState, Queue},
     },
-    Nil,
 };
 
 use super::{Client, Endpoint};
@@ -75,8 +75,15 @@ pub async fn pause_playback(
     spotify: &Client<impl AuthFlow + Authorised>,
 ) -> Result<Nil> {
     let device_id = device_id.map(|d| [("device_id", d)]);
+
     spotify
-        .request(Method::PUT, "/me/player/pause".to_owned(), device_id, None)
+        .request(
+            Method::PUT,
+            "/me/player/pause".to_owned(),
+            device_id,
+            None,
+            false,
+        )
         .await
 }
 
@@ -86,7 +93,13 @@ pub async fn skip_to_next(
 ) -> Result<Nil> {
     let device_id = device_id.map(|d| [("device_id", d)]);
     spotify
-        .request(Method::POST, "/me/player/next".to_owned(), device_id, None)
+        .request(
+            Method::POST,
+            "/me/player/next".to_owned(),
+            device_id,
+            None,
+            false,
+        )
         .await
 }
 
@@ -101,6 +114,7 @@ pub async fn skip_to_previous(
             "/me/player/previous".to_owned(),
             device_id,
             None,
+            false,
         )
         .await
 }
@@ -278,7 +292,13 @@ impl SeekToPositionEndpoint {
     #[doc = include_str!("../docs/send.md")]
     pub async fn send(self, spotify: &Client<impl AuthFlow + Authorised>) -> Result<Nil> {
         spotify
-            .request(Method::PUT, "/me/player/seek".to_owned(), self.into(), None)
+            .request(
+                Method::PUT,
+                "/me/player/seek".to_owned(),
+                self.into(),
+                None,
+                false,
+            )
             .await
     }
 }
@@ -304,6 +324,7 @@ impl SetRepeatModeEndpoint {
                 "/me/player/repeat".to_owned(),
                 self.into(),
                 None,
+                false,
             )
             .await
     }
@@ -330,6 +351,7 @@ impl SetPlaybackVolumeEndpoint {
                 "/me/player/volume".to_owned(),
                 self.into(),
                 None,
+                false,
             )
             .await
     }
@@ -356,6 +378,7 @@ impl ToggleShuffleEndpoint {
                 "/me/player/shuffle".to_owned(),
                 self.into(),
                 None,
+                false,
             )
             .await
     }
@@ -430,6 +453,7 @@ impl AddItemToQueueEndpoint {
                 "/me/player/queue".to_owned(),
                 self.into(),
                 None,
+                false,
             )
             .await
     }

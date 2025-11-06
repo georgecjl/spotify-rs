@@ -1,13 +1,14 @@
 use std::time::Duration;
 
 use crate::{
+    Error, Token,
     auth::AuthFlow,
     client::{self, Client},
     endpoint::Endpoint,
     error::Result,
-    Error, Token,
 };
-use serde::{de::DeserializeOwned, Deserialize, Deserializer};
+use reqwest::Method;
+use serde::{Deserialize, Deserializer, de::DeserializeOwned};
 
 pub mod album;
 pub mod artist;
@@ -69,11 +70,10 @@ impl<T: Clone + DeserializeOwned> Page<T> {
             return Err(Error::NoRemainingPages);
         };
 
-        // Remove `API_URL`from the string, as spotify.get()
-        // (or rather spotify.request) appends it already.
-        let next = next.replace(client::API_URL, "");
-
-        spotify.get(next, [("limit", self.limit)]).await
+        // Setting `raw_url` to true so `next` is passed directly as the URL
+        spotify
+            .request::<(), _>(Method::GET, next.clone(), None, None, true)
+            .await
     }
 
     /// Get the previous page.
@@ -85,11 +85,10 @@ impl<T: Clone + DeserializeOwned> Page<T> {
             return Err(Error::NoRemainingPages);
         };
 
-        // Remove `API_URL`from the string, as spotify.get()
-        // (or rather spotify.request) appends it already.
-        let previous = previous.replace(client::API_URL, "");
-
-        spotify.get(previous, [("limit", self.limit)]).await
+        // Setting `raw_url` to true so `previous` is passed directly as the URL
+        spotify
+            .request::<(), _>(Method::GET, previous.clone(), None, None, true)
+            .await
     }
 
     /// Get the items of all the remaining pages - that is, all the pages found
